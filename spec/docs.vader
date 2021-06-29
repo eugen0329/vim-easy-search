@@ -47,7 +47,7 @@ Then:
   norm yf
   AssertEqual getreg(esearch#util#clipboard_reg()), g:file, 'expected to yank the filename'
   norm t
-  Assert split(execute('messages'), "\n")[-1] =~# 'Not an editor command: NewTabdrop'
+  AssertMatches Messages()[-1], 'Not an editor command: NewTabdrop'
   norm 4+
   AssertEqual b:esearch.after, 4
   norm 2-

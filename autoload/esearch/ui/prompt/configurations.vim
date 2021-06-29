@@ -3,6 +3,7 @@ let s:List = vital#esearch#import('Data.List')
 let s:String = vital#esearch#import('Data.String')
 let s:FiletypePrompt = esearch#ui#prompt#filetype#import()
 let s:PathPrompt = esearch#ui#prompt#path#import()
+let s:GlobPrompt = esearch#ui#prompt#glob#import()
 
 let s:ConfigurationsPrompt = esearch#ui#component()
 
@@ -20,6 +21,9 @@ fu! s:ConfigurationsPrompt.render() abort dict
       let result += self.render_paths_for_windows_cmd()
     endif
   endif
+
+  if !empty(result) | let result += [[self.props.normal_hl, ' ']] | endif
+  let result += s:GlobPrompt.new().render()
 
   return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
 endfu
@@ -41,7 +45,9 @@ fu! s:ConfigurationsPrompt.render_paths_for_posix_shell() abort dict
   endif
 
   if !empty(result) | let result += [[self.props.normal_hl, ' ']] | endif
-  return result + s:PathPrompt.new({'paths': absolute_paths}).render()
+  let result += s:PathPrompt.new({'paths': absolute_paths}).render()
+
+  return result
 endfu
 
 fu! s:ConfigurationsPrompt.render_paths_for_windows_cmd() abort dict

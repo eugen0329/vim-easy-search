@@ -25,10 +25,6 @@ fu! s:MenuController.render() abort dict
     call self.cursor_up()
   elseif s:List.has(s:cancel_keys, key)
     return self.props.dispatch({'type': 'SET_LOCATION', 'location': 'search_input'})
-  elseif key ==# 'G'
-    call self.cursor_last()
-  elseif key ==# 'g' && esearch#util#getchar() ==# 'g'
-    call self.cursor_first()
   else
     if self.menu.keypress({'key': key, 'target': self.menu.items[self.props.cursor]})
       return
@@ -58,19 +54,11 @@ fu! s:MenuController.component_will_unmount() abort dict
   redraw!
 endfu
 
-fu! s:MenuController.cursor_first() abort dict
-  call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': 0})
-endfu
-
-fu! s:MenuController.cursor_last() abort dict
-  call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': len(self.menu.items) - 1})
-endfu
-
 fu! s:MenuController.cursor_down() abort dict
   if self.props.cursor < len(self.menu.items) - 1
     call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': self.props.cursor + 1})
   else
-    call self.cursor_first()
+    call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': 0})
   endif
 endfu
 
@@ -78,7 +66,7 @@ fu! s:MenuController.cursor_up() abort dict
   if self.props.cursor > 0
     call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': self.props.cursor - 1})
   else
-    call self.cursor_last()
+    call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': len(self.menu.items) - 1})
   endif
 endfu
 

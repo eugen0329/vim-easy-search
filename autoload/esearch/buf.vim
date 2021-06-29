@@ -138,7 +138,7 @@ fu! s:Buf.for(bufnr) abort dict
   return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
 endfu
 
-if g:esearch#has#bufadd
+if g:esearch#has#bufadd && g:esearch#has#bufload
   fu! s:Buf.new(filename) abort dict
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)

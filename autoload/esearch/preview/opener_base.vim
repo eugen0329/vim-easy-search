@@ -26,6 +26,7 @@ fu! s:OpenerBase.shell() abort dict
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
+    call esearch#preview#close()
     let g:esearch#preview#win = self.popup
           \.new(self.buf, self.location, self.shape, self.close_on)
           \.open()

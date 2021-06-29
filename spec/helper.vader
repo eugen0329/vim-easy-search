@@ -12,8 +12,18 @@ Execute(global setup):
     return a:path
   endfu
 
+  fu! AssertMatches(a, b)
+    return vader#assert#true(a:a =~# a:b, "expected to match:\n\t".a:a."\n\t".a:b.'')
+  endfu
+
+  fu! Messages()
+    return filter(
+          \ split(execute('messages'), "\n"),
+          \ "v:val !~# 'Messages maintainer: Bram Moolenaar'")
+  endfu
+
   fu! CantWrite(path) abort
-    let messages = split(execute('messages'), "\n")[-2:-1]
+    let messages = Messages()[-2:-1]
     return messages[0] ==# 'Can''t write changes to the following files:'
       \ && messages[1] =~# '^  '.fnamemodify(a:path, ':.')
   endfu
@@ -56,6 +66,9 @@ Execute(global setup):
     return dict
   endfu
 
+  command! -nargs=+ AssertMatches call AssertMatches(<args>)
+  command! -nargs=1 AssertExecutableAvailable Assert executable(<args>), 'expected '.<args>.' to be available'
+
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
   let g:esearch = {
@@ -70,3 +83,4 @@ Execute(global setup):
 
   let g:mapleader = ","
   set nomore splitright splitbelow shortmess=lnTtoOfF
+  call esearch#stderr#incremental('workaround to avoid vader bug with autoload fail', [''])

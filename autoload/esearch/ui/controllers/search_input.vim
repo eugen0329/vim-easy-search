@@ -6,25 +6,37 @@ let s:INF = 88888888
 cnoremap <plug>(esearch-cycle-regex)   <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<cr><cr>
 cnoremap <plug>(esearch-cycle-case)    <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<cr><cr>
 cnoremap <plug>(esearch-cycle-textobj) <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<cr><cr>
-cnoremap <plug>(esearch-push-pattern)  <c-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<cr><cr>
 cnoremap <plug>(esearch-open-menu)     <c-r>=<SID>interrupt('<SID>open_menu')<cr><cr>
 
-cnoremap <expr> <plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
-cnoremap <expr> <plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
-cnoremap <expr> <plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
+cnoremap <plug>(esearch-push-pattern) <c-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<cr><cr>
+cnoremap <expr> <plug>(esearch-bs)    <SID>try_pop_pattern("\<bs>")
+cnoremap <expr> <plug>(esearch-c-w)   <SID>try_pop_pattern("\<c-w>")
+cnoremap <expr> <plug>(esearch-c-h)   <SID>try_pop_pattern("\<c-h>")
+
+let s:keymaps = [
+      \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
+      \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
+      \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
+      \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
+      \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
+      \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
+      \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
+      \]
 
 let s:self = {}
 let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
-  let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
+  let original_mappings = esearch#keymap#restorable(s:keymaps)
   let [global_options, local_options] = self.set_options()
   try
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   catch /Vim:Interrupt/
-    call self.cancel()
+    call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
+    call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
     call local_options.restore()
@@ -55,7 +67,7 @@ endfu
 fu! s:SearchInputController.init_live_update() dict abort
   let self.executed_cmdline = ''
 
-  aug esearch_live_update
+  aug __esearch_live_update__
     au!
     au CmdlineChanged * call s:live_update.apply()
     " Overrule statusline plugins when live_update buffer is opened
@@ -78,7 +90,7 @@ fu! s:SearchInputController.final_live_update() dict abort
   " if changes were made and live_update_debounce_wait wasn't exceeded
   let cmdline = self.cmdline
   if s:self.executed_cmdline ==# cmdline || empty(cmdline) | return | endif
-  call self.force_exec(cmdline)
+  call s:self.props.dispatch({'type': 'FORCE_EXEC', 'cmdline': cmdline})
 endfu
 
 fu! s:live_update(...) abort
@@ -87,21 +99,7 @@ fu! s:live_update(...) abort
     return
   endif
   let s:self.executed_cmdline = cmdline
-  let esearch = s:self.force_exec(cmdline)
-  call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
-endfu
-
-fu! s:SearchInputController.force_exec(cmdline) abort dict
-  let state = copy(s:self.__context__().store.state)
-  call state.pattern.replace(a:cmdline)
-  let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
-  if empty(esearch) | call self.cancel() | endif
-  return esearch
-endfu
-
-fu! s:SearchInputController.cancel() abort dict
-  call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
-  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
+  call s:self.props.dispatch({'type': 'FORCE_EXEC', 'cmdline': cmdline})
 endfu
 
 fu! s:redraw(_) abort
@@ -109,8 +107,9 @@ fu! s:redraw(_) abort
 endfu
 
 fu! s:SearchInputController.uninit_live_update() dict abort
-  au! esearch_live_update *
-  call timer_stop(self.redraw_timer)
+  silent! au! __esearch_live_update__ *
+  silent! call timer_stop(self.redraw_timer)
+  call s:live_update.cancel()
 endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
@@ -172,7 +171,7 @@ fu! s:SearchInputController.restore_cmdpos_chars() abort
 endfu
 
 fu! s:try_pop_pattern(fallback) abort
-  if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
+  if empty(getcmdline()) && len(s:self.props.pattern.list) > 1
     let s:self.pressed_mapped_key = {'handler': function('<SID>dispatch_try_pop_pattern'), 'args': a:000}
     call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
     return "\<cr>"

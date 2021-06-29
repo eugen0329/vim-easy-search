@@ -1,6 +1,5 @@
 " A module to collect one checks in a single place and also make them overridable
 let g:esearch#has#nvim = has('nvim')
-let g:esearch#has#vms = has('vms')
 let g:esearch#has#windows = has('win32')
 let g:esearch#has#posix_shell = !has('win32') || has('win32unix')
 let g:esearch#has#timers = has('timers')
@@ -8,6 +7,7 @@ let g:esearch#has#debounce = has('timers')
 let g:esearch#has#reg_recording = exists('*reg_recording')
 let g:esearch#has#throttle = has('timers')
 let g:esearch#has#bufadd = exists('*bufadd')
+let g:esearch#has#bufload = exists('*bufload')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
 let g:esearch#has#gui_colors = has('gui_running') || has('termguicolors') && &termguicolors || has('nvim') && $NVIM_TUI_ENABLE_TRUE_COLOR " from papercolors
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
@@ -35,3 +35,6 @@ let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#
 let g:esearch#has#nvim_lua_regex = g:esearch#has#nvim_lua && luaeval('not not vim.regex')
 let g:esearch#has#getbufinfo_linecount = has('patch-8.2.0019')
 let g:esearch#has#matchadd_win = has('patch-8.1.1084')
+let g:esearch#has#globs_preview = g:esearch#has#preview
+let g:esearch#has#complete_changed = exists('##CompleteChanged')
+let g:esearch#has#signs_api = exists('*sign_define')

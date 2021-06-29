@@ -312,6 +312,7 @@ Expect esearch_test:
 
 ###########
 Execute (change with C avoiding recording):
+  if !g:esearch#has#reg_recording | finish | endif
   let @" = 'original'
   exe "norm! /word1\<CR>"
   norm f1Czzz
@@ -389,6 +390,7 @@ Expect esearch_test:
 
 ###########
 Execute (delete with D avoiding recording):
+  if !g:esearch#has#reg_recording | finish | endif
   let @" = 'original'
   exe "norm! /word1\<CR>"
   norm f1D

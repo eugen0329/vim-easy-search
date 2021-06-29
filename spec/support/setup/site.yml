@@ -3,10 +3,11 @@
   connection: local
   tasks:
     - include_vars: '{{ ansible_os_family | lower }}.yml'
-
+    - set_fact:
+        deps_dir: '{{ ansible_env.HOME }}/.cache/esearch-dev'
     - name: Create a directory for dependencies
       file:
-        path: '{{ ansible_env.HOME }}/.cache/esearch-dev'
+        path: '{{ deps_dir }}'
         state: directory
 
     - name: Setup global dependencies
@@ -17,22 +18,28 @@
             state: present
           become: '{{ package_become }}'
           with_items:
-            - luarocks
             - git
             - curl
             - ragel
             - unzip
             - neovim
+            - luarocks
             - '{{ vim_package_name }}'
             - '{{ tar_package_name }}'
             - '{{ pip_package_name }}'
             - '{{ ps_package_name }}'
-        # - name: go
-        #   unarchive:
-        #     src: 'https://golang.org/dl/go1.11.linux-amd64.tar.gz'
-        #     dest: '{{ ansible_env.HOME }}/.cache/esearch-dev'
-        #     remote_src: true
-
+        - name: go
+          shell: eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.14 bash)"
+        - name: gohome
+          lineinfile:
+            path: '{{ ansible_env.HOME }}/.bashrc'
+            state: present
+            line: 'export PATH="$PATH:$HOME/go/bin"'
+        - name: go path
+          lineinfile:
+            path: '{{ ansible_env.HOME }}/.bashrc'
+            state: present
+            line: '. ~/.gimme/envs/go1.14.env'
         - name: lua linter
           command: luarocks install luacheck
           become: '{{ package_become }}'
@@ -58,9 +65,9 @@
             name: ['semgrep']
             state: present
         - name: From go-get
-          command: "go get {{ item }}"
+          shell: '. ~/.gimme/envs/go1.14.env && go get {{ item }}'
           environment:
-            GO111MODULE: "on"
+            GO111MODULE: 'on'
           with_items:
             - mvdan.cc/gogrep
         - name: install prebuilt
@@ -92,8 +99,8 @@
               with_items: '{{ greppers }}'
           vars:
             - greppers:
-              - {bin: pt, download_url: '{{ pt_download_url }}'}
-              - {bin: rg, download_url: '{{ rg_download_url }}'}
+                - {bin: pt, download_url: '{{ pt_download_url }}'}
+                - {bin: rg, download_url: '{{ rg_download_url }}'}
         - name: configure git-grep
           block:
             - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
@@ -101,8 +108,8 @@
 
     - name: setup plugin dependencies
       git:
-        repo: "{{ item }}"
-        dest: "~/.cache/esearch-dev/plugins/{{ item | urlsplit('path') | basename | splitext | first }}"
+        repo: '{{ item }}'
+        dest: '{{ deps_dir }}/plugins/{{ item | urlsplit("path") | basename | splitext | first }}'
       with_items:
         - https://github.com/mg979/vim-visual-multi.git
         - https://github.com/tpope/vim-fugitive.git
@@ -123,4 +130,4 @@
         - name: vader testing framework
           git:
             repo: https://github.com/junegunn/vader.vim.git
-            dest: ~/.cache/esearch-dev/plugins/vader.vim
+            dest: '{{ deps_dir }}/plugins/vader.vim'

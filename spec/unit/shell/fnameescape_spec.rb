@@ -7,85 +7,98 @@ describe 'esearch#shell' do
   include Helpers::FileSystem
   include Helpers::Shell
 
-  describe '#fnameescape' do
+  describe '#escape' do
     # It Doesn't make a lot of sense to test it separately from #split due to
-    # possible false positives and much more complicated setup. Thus
-    # fnameescape(split(...)) is tested here.
-
-    context 'when metachars' do
-      shared_examples 'prevents special from escaping' do |c|
-        it { expect(split_and_escape("#{c}b")).to          eq(["#{c}b"])          }
-        it { expect(split_and_escape(c.to_s)).to           eq([c.to_s])           }
-        it { expect(split_and_escape("#{c}a")).to          eq(["#{c}a"])          }
-        it { expect(split_and_escape("#{c}abc")).to        eq(["#{c}abc"])        }
-        it { expect(split_and_escape("#{c}a#{c}")).to      eq(["#{c}a#{c}"])      }
-        it { expect(split_and_escape("#{c}b#{c}a")).to     eq(["#{c}b#{c}a"])     }
-        it { expect(split_and_escape("#{c}b#{c}a#{c}")).to eq(["#{c}b#{c}a#{c}"]) }
-
-        it { expect(split_and_escape("b#{c}c")).to         eq(["b#{c}c"])         }
-        it { expect(split_and_escape("a#{c}")).to          eq(["a#{c}"])          }
-        it { expect(split_and_escape("a#{c}bc")).to        eq(["a#{c}bc"])        }
-        it { expect(split_and_escape("a#{c}bcd")).to       eq(["a#{c}bcd"])       }
-        it { expect(split_and_escape("abcd#{c}")).to       eq(["abcd#{c}"])       }
-        it { expect(split_and_escape("b#{c}a#{c}")).to     eq(["b#{c}a#{c}"])     }
+    # possible false positives and much more complicated setup.
+    shared_examples 'handles char' do |c, as:|
+      describe "handling char #{c.dump} as #{as.dump}" do
+        it { expect(split_and_escape("#{c}b")).to          eq(["#{as}b"])            }
+        it { expect(split_and_escape(c)).to                eq([as])                  }
+        it { expect(split_and_escape("#{c}a#{c}")).to      eq(["#{as}a#{as}"])       }
+        it { expect(split_and_escape("d#{c}b#{c}a")).to    eq(["d#{as}b#{as}a"])     }
+        it { expect(split_and_escape("#{c}b#{c}a#{c}")).to eq(["#{as}b#{as}a#{as}"]) }
       end
-
-      shared_examples 'prevents special from double escaping' do |c|
-        it { expect(split_and_escape("\\#{c}")).to               eq(["\\#{c}"])               }
-        it { expect(split_and_escape("\\#{c}a")).to              eq(["\\#{c}a"])              }
-        it { expect(split_and_escape("\\#{c}abc")).to            eq(["\\#{c}abc"])            }
-        it { expect(split_and_escape("\\#{c}a\\#{c}")).to        eq(["\\#{c}a\\#{c}"])        }
-        it { expect(split_and_escape("\\#{c}b\\#{c}a")).to       eq(["\\#{c}b\\#{c}a"])       }
-        it { expect(split_and_escape("\\#{c}b\\#{c}a\\#{c}")).to eq(["\\#{c}b\\#{c}a\\#{c}"]) }
-
-        it { expect(split_and_escape("a\\#{c}")).to              eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("a\\#{c}bc")).to            eq(["a\\#{c}bc"])            }
-        it { expect(split_and_escape("a\\#{c}bcd")).to           eq(["a\\#{c}bcd"])           }
-        it { expect(split_and_escape("abc\\#{c}")).to            eq(["abc\\#{c}"])            }
-        it { expect(split_and_escape("b\\#{c}a\\#{c}")).to       eq(["b\\#{c}a\\#{c}"])       }
-
-        it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
-        it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
-
-        it { expect(split_and_escape("''a#{c}a\\")).to           eq(:error)                   }
-        it { expect(split_and_escape("''a#{c}a'")).to            eq(:error)                   }
-      end
-
-      shared_examples 'handles escaping of shell special' do |c|
-        include_examples 'prevents special from escaping', c
-        include_examples 'prevents special from double escaping', c
-      end
-
-      include_examples 'handles escaping of shell special', '?'
-      include_examples 'handles escaping of shell special', '*'
-      include_examples 'handles escaping of shell special', '!'
-      include_examples 'handles escaping of shell special', '|'
-
-      include_examples 'handles escaping of shell special', '^'
-      include_examples 'handles escaping of shell special', '$'
-      include_examples 'handles escaping of shell special', '['
-      include_examples 'handles escaping of shell special', ']'
-      include_examples 'handles escaping of shell special', '@'
-      include_examples 'handles escaping of shell special', '('
-      include_examples 'handles escaping of shell special', ')'
-      include_examples 'handles escaping of shell special', '{'
-      include_examples 'handles escaping of shell special', '}'
-      include_examples 'handles escaping of shell special', '+'
     end
 
-    context 'when special only when leading' do
-      # Based on :h fnameescape() and src/vim.h
-      it { expect(split_and_escape('-')).to   eq(['\-'])  }
-      it { expect(split_and_escape('-a')).to  eq(['-a'])  }
-      it { expect(split_and_escape('a-')).to  eq(['a-'])  }
-      it { expect(split_and_escape('>')).to   eq(['\>'])  }
-      it { expect(split_and_escape('>a')).to  eq(['\>a']) }
-      it { expect(split_and_escape('a>')).to  eq(['a>'])  }
-      it { expect(split_and_escape('\+')).to  eq(['\+'])  }
-      it { expect(split_and_escape('\+a')).to eq(['\+a']) }
-      it { expect(split_and_escape('a\+')).to eq(['a\+']) }
+    shared_examples "doesn't escape char" do |c|
+      include_examples 'handles char', c,        as: c
+      include_examples 'handles char', "\\#{c}", as: "\\#{c}"
+    end
+
+    shared_examples 'escapes char' do |c|
+      include_examples 'handles char', c,        as: "\\#{c}"
+      include_examples 'handles char', "\\#{c}", as: "\\#{c}"
+    end
+
+    describe 'metachars' do
+      include_examples "doesn't escape char", '?'
+      include_examples "doesn't escape char", '*'
+      include_examples "doesn't escape char", '!'
+      include_examples "doesn't escape char", '|'
+      include_examples "doesn't escape char", '^'
+      include_examples "doesn't escape char", '$'
+      include_examples "doesn't escape char", '['
+      include_examples "doesn't escape char", ']'
+      include_examples "doesn't escape char", '@'
+      include_examples "doesn't escape char", '('
+      include_examples "doesn't escape char", ')'
+      include_examples "doesn't escape char", '{'
+      include_examples "doesn't escape char", '}'
+
+      describe 'preventing double escaping' do
+        include_examples 'handles char', '\\+', as: '\\+'
+      end
+    end
+
+    describe 'shell special' do
+      include_examples 'escapes char', '&'
+      include_examples 'escapes char', '%'
+      include_examples 'escapes char', ';'
+      include_examples 'escapes char', '#'
+      include_examples 'escapes char', '>'
+      include_examples 'escapes char', '<'
+      include_examples 'escapes char', "\n"
+
+      describe 'handling \s' do
+        it { expect(split_and_escape("'a b'")).to   eq(['a\\ b'])     }
+        it { expect(split_and_escape("'a\\ b'")).to eq(['a\\\\\\ b']) }
+        it { expect(split_and_escape('a b')).to     eq(%w[a b])       }
+        it { expect(split_and_escape('a\\ b')).to   eq(['a\\ b'])     }
+      end
+
+      describe 'handling \t' do
+        it { expect(split_and_escape("'a\tb'")).to   eq(["a\\\tb"])     }
+        it { expect(split_and_escape("'a\\\tb'")).to eq(["a\\\\\\\tb"]) }
+        it { expect(split_and_escape("a\tb")).to     eq(%w[a b])        }
+        it { expect(split_and_escape("a\\\tb")).to   eq(["a\\\tb"])     }
+      end
+    end
+
+    describe 'backticks' do
+      it { expect(split_and_escape("'a`b`c'")).to eq(['a\`b\`c']) }
+      it { expect(split_and_escape('a\`b\`c')).to eq(['a\`b\`c']) }
+      it { expect(split_and_escape('"a`b`c"')).to eq(['a`b`c'])   }
+      it { expect(split_and_escape('a`b`c')).to   eq(['a`b`c'])   }
+    end
+
+    describe 'specials only at the leading position' do
+      context 'when not escaped yet' do
+        it { expect(split_and_escape('-')).to   eq(['\-'])  }
+        it { expect(split_and_escape('-a')).to  eq(['-a'])  }
+        it { expect(split_and_escape('a-')).to  eq(['a-'])  }
+        it { expect(split_and_escape('+')).to   eq(['\+'])  }
+        it { expect(split_and_escape('+a')).to  eq(['\+a']) }
+        it { expect(split_and_escape('a+')).to  eq(['a+'])  }
+      end
+
+      context 'when already escaped' do
+        it { expect(split_and_escape('\-')).to  eq(['\-'])  }
+        it { expect(split_and_escape('\-a')).to eq(['-a'])  }
+        it { expect(split_and_escape('a\-')).to eq(['a-'])  }
+        it { expect(split_and_escape('\+')).to  eq(['\+'])  }
+        it { expect(split_and_escape('\+a')).to eq(['\+a']) }
+        it { expect(split_and_escape('a\+')).to eq(['a\+']) }
+      end
     end
   end
 end

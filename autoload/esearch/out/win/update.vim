@@ -11,7 +11,7 @@ fu! esearch#out#win#update#init(es) abort
         \ 'state':       [],
         \ 'render':      function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
         \})
-  aug esearch_win_updates " init blank to prevent errors on cleanup
+  aug __esearch_win_updates__ " init blank to prevent errors on cleanup
   aug END
   setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400
   setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=manual foldminlines=0 foldtext=esearch#out#win#fold#text()
@@ -29,7 +29,7 @@ fu! s:init_async_updates(es) abort
         \ 'early_upd_max': a:es.live_update && a:es.force_exec ? &lines : a:es.batch_size
         \})
 
-  aug esearch_win_updates
+  aug __esearch_win_updates__
     au! * <buffer>
     exe 'au BufUnload <buffer> cal esearch#backend#'.a:es.backend."#abort(str2nr(expand('<abuf>')))"
   aug END
@@ -70,7 +70,7 @@ fu! esearch#out#win#update#uninit(es) abort
   if has_key(a:es, 'upd_timer')
     cal timer_stop(a:es.upd_timer)
   en
-  exe printf('au! esearch_win_updates * <buffer=%s>', string(a:es.bufnr))
+  exe printf('au! __esearch_win_updates__ * <buffer=%s>', string(a:es.bufnr))
 endfu
 
 " NOTE is_consumed waits early_finish_wait ms while early_update_cb is
@@ -162,7 +162,7 @@ fu! esearch#out#win#update#schedule_finish(n) abort
   if !bufexists(a:n) | retu | en
 
   " Bind event to finish the search as soon as the buffer is entered
-  aug esearch_win_updates
+  aug __esearch_win_updates__
     exe printf('au BufEnter <buffer=%d> cal esearch#out#win#update#finish(%d)', a:n, a:n)
   aug END
 endfu

@@ -21,7 +21,7 @@ endfu
 
 fu! s:NvimPopup.edit() abort dict
   if exists('#esearch_preview_autoclose')
-    au! esearch_preview_autoclose
+    au! __esearch_preview_autoclose__
   endif
 
   " NOTE The conditions below are needed to reuse already existing buffers where
@@ -49,7 +49,7 @@ fu! s:NvimPopup.edit() abort dict
 
   let s:swapname = ''
   let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
-  aug esearch_preview_swap_probe
+  aug __esearch_preview_swap_probe__
     au!
     au SwapExists * ++once let s:swapname = v:swapname | let v:swapchoice = 'q'
   aug END
@@ -57,7 +57,7 @@ fu! s:NvimPopup.edit() abort dict
     exe 'keepj edit ' . fnameescape(self.buf.filename)
   finally
     call eventignore.restore()
-    au! esearch_preview_swap_probe
+    au! __esearch_preview_swap_probe__
   endtry
   let self.buf.swapname = s:swapname
 
@@ -159,15 +159,15 @@ fu! s:NvimPopup.reshape() abort dict
 endfu
 
 fu! s:NvimPopup.init_entered_autoclose_events() abort dict
-  aug esearch_preview_autoclose
+  aug __esearch_preview_autoclose__
     " Before leaving a window
     au WinLeave * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buf.id, win_getid()).restore() | call esearch#preview#close()
     " After entering another window
-    au WinEnter * ++once au! esearch_preview_autoclose
+    au WinEnter * ++once au! __esearch_preview_autoclose__
     " From :h local-options
     " When splitting a window, the local options are copied to the new window. Thus
     " right after the split the contents of the two windows look the same.
-    au WinNew * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buf.id, win_getid()).restore() | au! esearch_preview_autoclose
+    au WinNew * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buf.id, win_getid()).restore() | au! __esearch_preview_autoclose__
 
     " NOTE dc09e176. Prevents options inheritance when trying to delete the
     " buf. Grep note id to locate the test case.

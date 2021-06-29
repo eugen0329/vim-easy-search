@@ -4,8 +4,11 @@ Before:
   Save g:esearch
   call esearch#config#eager()
   let g:esearch.prefill = []
+  let g:esearch.pattern = '.'
+  messages clear
 After:
   Restore g:esearch
+  messages clear
 
 Execute(insert order):
   let [g:before_pattern, g:after_pattern, g:before_id, g:after_id] = [0, 0, 0, 0]
@@ -13,9 +16,45 @@ Execute(insert order):
   call g:esearch.middleware.insert_after('id', {e-> execute('let g:after_id = 2') ? e : e})
   call g:esearch.middleware.insert_before('input', {e-> execute('let g:before_pattern = 3') ? e : e})
   call g:esearch.middleware.insert_after('input', {e-> execute('let g:after_pattern = 4') ? e : e})
+  unlet g:esearch.pattern
   exe "norm \<plug>(esearch)\<CR>"
   AssertEqual [g:before_id, g:after_id, g:before_pattern, g:after_pattern], [1, 2, 3, 0]
 
 Execute(Handle missing cwd in esearch#middleware#cwd#apply):
-  call esearch#init({'pattern': '.', 'cwd': 'missing-cwd'})
-  AssertEqual split(execute('messages'), '\n')[-1], "esearch: directory missing-cwd doesn't exist"
+  call esearch#init({'cwd': 'missing-cwd'})
+  AssertEqual Messages(), ["esearch: directory missing-cwd doesn't exist"]
+
+Execute(esearch#middleware#paths#apply home expansion):
+  call esearch#init({'paths': '~/nonexisting-directory'})
+  AssertEqual esearch#shell#join(b:esearch.paths),
+    \ fnamemodify('~', ':p') . 'nonexisting-directory'
+
+Execute(esearch#middleware#globs#apply from string for rg):
+  call esearch#init({
+      \ 'adapter': 'rg',
+      \ 'globs': '--glob full -g short --iglob iglob  --unknown unknown'})
+  AssertMatches b:esearch.request.command, "--glob 'full' --glob 'short' --iglob 'iglob'"
+  AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
+
+Execute(esearch#middleware#globs#apply from string for pt):
+  call esearch#init({
+      \ 'adapter': 'ag',
+      \ 'globs': '--file-search-regex full --unknown unknown'})
+  AssertMatches b:esearch.request.command, "--file-search-regex 'full'"
+  AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
+  messages clear
+  call esearch#init({
+      \ 'adapter': 'ag',
+      \ 'globs': '-G short --unknown unknown'})
+  AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
+  AssertMatches b:esearch.request.command, "'short'"
+  messages clear
+
+Execute(esearch#middleware#globs#apply from string for ag):
+  call esearch#init({
+      \ 'adapter': 'pt',
+      \ 'globs': '--ignore full -G short --file-search-regexp synonym --unknown unknown'})
+  AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
+  AssertMatches b:esearch.request.command,
+    \ "--ignore 'full' --file-search-regexp 'short' --file-search-regexp 'synonym'"
+  messages clear

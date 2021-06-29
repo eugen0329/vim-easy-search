@@ -10,7 +10,7 @@ endfu
 
 fu! s:CurrentPattern.get_args() abort
   let state = self.__context__().store.state
-  let converted = map(copy(self.props.pattern.patterns.list[:-2]), 'v:val.convert(state)')
+  let converted = map(copy(self.props.pattern.list[:-2]), 'v:val.convert(state)')
   return join(map(converted, 'v:val.opt . v:val.arg'))
 endfu
 

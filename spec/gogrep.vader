@@ -1,9 +1,13 @@
 Include: helper.vader
 
 Before:
+  AssertExecutableAvailable 'gogrep'
   Save g:esearch
-  let g:esearch.cwd = 'spec/fixtures/gogrep/'
-  let g:esearch.backend = 'system'
+  let g:esearch = {
+      \ 'cwd': 'spec/fixtures/gogrep/',
+      \ 'adapter': 'gogrep',
+      \ 'backend': 'system',
+      \}
 After:
   Restore g:esearch
 
@@ -14,11 +18,8 @@ Execute(#win):
   \ '  return 1',
   \ '}',
   \])
-  call esearch#init({
-  \ 'adapter': 'gogrep',
-  \ 'pattern': 'return $x',
-  \})
-  AssertEqual getline(4), '   3  return 1'
+  call esearch#init({'pattern': 'return $x'})
+  AssertEqual getline(4), '   3  return 1', getline(1, '$')
 
 Execute(#qflist):
   let g:file = Fixture(g:esearch.cwd.'file.go', [
@@ -27,10 +28,6 @@ Execute(#qflist):
   \ '  return 1',
   \ '}',
   \])
-  call esearch#init({
-  \ 'out': 'qflist',
-  \ 'adapter': 'gogrep',
-  \ 'pattern': 'return $x',
-  \})
+  call esearch#init({'out': 'qflist', 'pattern': 'return $x'})
   AssertEqual len(getqflist()), 1
-  AssertEqual getqflist()[0].text, ' return 1'
+  AssertEqual getqflist()[0].text, ' return 1', getqflist()

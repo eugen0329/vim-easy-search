@@ -21,9 +21,6 @@ fu! s:VimPopup.reshape() abort dict
   let height = self.shape.height
   let line   = self.location.line
 
-  if &lines < height + self.shape.row
-    let self.shape.row = &lines - height - 2
-  endif
   call popup_setoptions(self.id, {
         \ 'firstline': max([1, line - height/2]),
         \ })

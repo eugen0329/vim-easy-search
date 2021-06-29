@@ -1,6 +1,7 @@
 let s:Log = esearch#log#import()
 let s:PathInputController = esearch#ui#component()
 
+" TODO Live update
 fu! s:PathInputController.render() abort dict
   let s:self = self
   if type(self.props.paths) == type({})

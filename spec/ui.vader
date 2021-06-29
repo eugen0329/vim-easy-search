@@ -1,5 +1,6 @@
 Include: helper.vader
 
+" TODO get rid of trailing \ ['NONE', ' '],
 Before:
   Save g:esearch, g:esearch#has#posix_shell
   let g:esearch.cwd = 'spec/fixtures/ui'.g:test_number.next().'/'
@@ -28,7 +29,10 @@ After:
 
 Execute(ConfigurationsPrompt with string paths):
   call Fixture(file, [''])
-  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+  let g:esearch.paths = 'file.txt dir missing-dir /tmp'
+  let g:esearch.globs = '--iglob file.txt --glob file2.txt'
+  call esearch#middleware#globs#apply(g:esearch)
+  call esearch#middleware#paths#apply(g:esearch)
 
   let g:esearch#has#posix_shell = 1
   AssertEqual ConfigurationsPrompt.new().render(), [
@@ -46,11 +50,18 @@ Execute(ConfigurationsPrompt with string paths):
     \ ['NONE', 'missing-dir'],
     \ ['NONE', ' }'],
     \ ['NONE', ' '],
-    \ ['Directory', dir_icon.'/tmp']
+    \ ['Directory', dir_icon.'/tmp'],
+    \ ['NONE', ' '],
+    \ ['Special', '<iglob '], ['NONE', 'file.txt'], ['Special', '>'],
+    \ ['NONE', ' '],
+    \ ['Special', '<glob '],  ['NONE', 'file2.txt'], ['Special', '>']
     \]
 
   let g:esearch#has#posix_shell = 0
-  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+  let g:esearch.paths = 'file.txt dir missing-dir /tmp'
+  let g:esearch.globs = '--iglob file.txt'
+  call esearch#middleware#globs#apply(g:esearch)
+  call esearch#middleware#paths#apply(g:esearch)
   AssertEqual ConfigurationsPrompt.new().render(), [
     \ ['NONE', 'In '],
     \ ['NONE', '<.undefined-filetype>'],
@@ -60,11 +71,14 @@ Execute(ConfigurationsPrompt with string paths):
     \ ['NONE', 'cwd: '],
     \ ['NONE', '''spec/fixtures/ui0/'''],
     \ ['NONE', ', '],
-    \ ['NONE', 'file.txt dir missing-dir /tmp']
+    \ ['NONE', 'file.txt dir missing-dir /tmp'],
+    \ ['NONE', ' '],
     \]
 
 Execute(ConfigurationsPrompt with #xargs paths):
   let g:esearch.paths = esearch#xargs#git_log('--opt')
+  call esearch#middleware#globs#apply(g:esearch)
+  call esearch#middleware#paths#apply(g:esearch)
   let g:esearch.adapter = 'git'
   call Provide(g:esearch)
 
@@ -73,7 +87,8 @@ Execute(ConfigurationsPrompt with #xargs paths):
     \ ['NONE', 'In '],
     \ ['Directory', dir_icon.g:esearch.cwd],
     \ ['NONE', '/'],
-    \ ['Special', '<git-log --opt>']
+    \ ['Special', '<git-log --opt>'],
+    \ ['NONE', ' '],
     \]
 
   let g:esearch#has#posix_shell = 0
@@ -81,5 +96,6 @@ Execute(ConfigurationsPrompt with #xargs paths):
     \ ['NONE', 'In '],
     \ ['NONE', shellescape(g:esearch.cwd)],
     \ ['NONE', '/'],
-    \ ['Special', '<git-log --opt>']
+    \ ['Special', '<git-log --opt>'],
+    \ ['NONE', ' '],
     \]

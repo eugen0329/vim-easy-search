@@ -51,7 +51,9 @@ fu! s:SignEmphasis.unplace() abort dict
   call self.signcolumn.restore()
 endfu
 
-let g:esearch#emphasis#default += [esearch#emphasis#sign()]
+if g:esearch#has#signs_api
+  let g:esearch#emphasis#default += [esearch#emphasis#sign()]
+endif
 
 let s:HighlightLineEmphasis = copy(s:Base)
 if g:esearch#has#nvim_add_highlight

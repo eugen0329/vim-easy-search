@@ -32,7 +32,7 @@ Execute:
 
     Log "\tdir hover"
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /dir1\<CR>\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
         \ 'Matches in 2 lines, 1 file. Finished.',
@@ -45,7 +45,7 @@ Execute:
 
     Log "\tfile inside of a dir hover"
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /dir1\<CR>\<CR>/file1\<CR>\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
         \ 'Matches in 2 lines, 1 file. Finished.',
@@ -58,7 +58,7 @@ Execute:
 
     Log "\tfile VISUAL"
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /file2\<CR>V\<plug>(operator-esearch-exec).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
         \ 'Matches in 2 lines, 1 file. Finished.',
@@ -71,7 +71,7 @@ Execute:
 
     Log "\trange VISUAL"
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /dir1\<CR>VG\<plug>(operator-esearch-exec).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
         \ 'Matches in 4 lines, 2 files. Finished.',
@@ -96,7 +96,7 @@ Execute(search in marked):
     Log open_filer
 
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /file2\<CR>-/file3\<CR>-\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
       \ 'Matches in 4 lines, 2 files. Finished.',
@@ -123,7 +123,7 @@ Execute(search with restricting git-log):
     Log open_filer
 
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /dir1\<CR>"
     call esearch#init({'paths': esearch#xargs#git_log(), 'pattern': '.'})
     Assert join(getline(1, '$'), "\n") =~# join([
@@ -153,7 +153,7 @@ Execute(search with restricting git-stash):
     Log open_filer
 
     exe open_filer g:esearch.cwd
-    let bufnr = bufnr()
+    let bufnr = bufnr('')
     exe "norm /dir1\<CR>"
     call esearch#init({'paths': esearch#xargs#git_stash(), 'pattern': '.'})
     Assert join(getline(1, '$'), "\n") =~# join([

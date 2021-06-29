@@ -35,7 +35,7 @@ endfu
 
 fu! s:Buf.edit_allowing_swap_prompt() abort dict
   if exists('#esearch_preview_autoclose')
-    au! esearch_preview_autoclose
+    au! __esearch_preview_autoclose__
   endif
 
   try

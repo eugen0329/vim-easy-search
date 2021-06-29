@@ -1,6 +1,7 @@
 let s:Log             = esearch#log#import()
 let s:FiletypeInputController = esearch#ui#component()
 
+" TODO Live update
 fu! s:FiletypeInputController.render() abort dict
   let s:_adapter = self.props._adapter
   redraw!

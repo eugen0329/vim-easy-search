@@ -11,7 +11,7 @@ let s:PatternSet = {}
 
 fu! s:PatternSet.splice(esearch) abort dict
   silent! unlet self['vim']
-  let self._arg = map(copy(self.patterns.list), '[v:val.opt, v:val.convert(a:esearch).arg]')
+  let self._arg = map(copy(self.list), '[v:val.opt, v:val.convert(a:esearch).arg]')
   let self.arg = join(map(copy(self._arg), 'join(v:val)'))
 
   if self.patterns.len() > 1

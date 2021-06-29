@@ -9,6 +9,10 @@ let s:Base = {
       \ 'parser': 'generic',
       \ 'pattern_kinds': [{'icon': '', 'opt': '', 'regex': 1}],
       \ 'multi_pattern': 0,
+      \ 'multi_glob': 0,
+      \ 'globs': [],
+      \ 'str2glob': {},
+      \ 'glob_options': '',
       \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
       \ 'before':   {'hint': 'lines before', 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},
@@ -46,6 +50,10 @@ fu! s:Base.command(esearch) abort dict
 endfu
 
 let s:Base.filetypes = []
+
+fu! s:Base.glob(filetypes) abort dict
+  throw 'NotAvailable'
+endfu
 
 fu! s:Base.filetypes2args(filetypes) abort dict
   return ''

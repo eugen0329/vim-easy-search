@@ -234,8 +234,7 @@ fu! s:Stack.push(val) abort dict
 endfu
 
 fu! s:Stack.pop() abort dict
-  let [self.list, popped] = [self.list[:-2], self.list[-1]]
-  return popped
+  return remove(self.list, -1)
 endfu
 
 fu! esearch#util#deprecate(message) abort
@@ -300,4 +299,8 @@ endfu
 
 fu! esearch#util#capture_range(target) abort range
   call add(a:target, [a:firstline, a:lastline])
+endfu
+
+fu! esearch#util#noop(...) abort
+  return 0
 endfu

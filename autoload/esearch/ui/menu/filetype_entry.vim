@@ -1,10 +1,9 @@
 let s:String     = vital#esearch#import('Data.String')
 let s:List       = vital#esearch#import('Data.List')
-let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:FiletypeEntry  = esearch#ui#component()
 
 fu! s:FiletypeEntry.render() abort dict
-  let icon = empty(self.props.filetypes) ? ['Comment', '[ft]'] : ['Special', '[ft]']
+  let icon = empty(self.props.filetypes) ? ['Comment', '[ft]'] : ['Typedef', '[ft]']
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' search only in filetypes']]
 
   if empty(self.props.filetypes)

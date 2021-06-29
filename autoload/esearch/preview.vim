@@ -45,6 +45,7 @@ fu! esearch#preview#shell(command, ...) abort
   call extend(opts, {'method': 'shell'}, 'keep')
   call extend(opts, {'align': 'custom'}, 'keep')
   call extend(opts, {'line': 1}, 'keep')
+  call extend(opts, {'on_finish': function('esearch#util#noop')}, 'keep')
   call extend(opts, {'cwd': getcwd()}, 'keep')
   call extend(opts, {'command': a:command})
   let expire = get(opts, 'expire', 2000)
@@ -54,23 +55,25 @@ fu! esearch#preview#shell(command, ...) abort
     return
   endif
   let request = esearch#backend#{backend}#init(opts.cwd, '', a:command)
-  let request.cb.finish = function('<SID>on_finish', [request, opts, bufnr('')])
+  let request.cb.finish = function('<SID>on_finish', [bufnr(''), request, opts])
   call esearch#backend#{backend}#exec(request)
   if !request.async | call request.cb.finish() | endif
 endfu
 
-fu! s:on_finish(request, opts, bufnr) abort
+fu! s:on_finish(bufnr, request, opts) abort
   if esearch#preview#is_open()
         \ && get(g:esearch#preview#last.opts, 'method') isnot# 'shell'
         \ || bufnr('') !=# a:bufnr
     " Close only shell previews to prevent E814
     return
   endif
-  call esearch#preview#close()
   noau noswap let bufnr = bufadd('[esearch-preview-shell]')
   noau call bufload(bufnr)
   call setbufvar(bufnr, '&buftype', 'nofile')
+  call deletebufline(bufnr, 1, '$')
   call setbufline(bufnr, 1, a:request.data)
+  call appendbufline(bufnr, '$', a:request.errors)
+  call a:opts.on_finish(bufnr, a:request, a:opts)
   call esearch#preview#open('[esearch-preview-shell]', a:opts.line, a:opts)
 endfu
 

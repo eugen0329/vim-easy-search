@@ -18,7 +18,7 @@ Execute(Guard):
     \  'b:undefined': 'buf_undefined',
     \  'w:undefined': 'win_undefined',
     \}
-  let g:bufnr = bufnr()
+  let g:bufnr = bufnr('')
   let g:winid = win_getid()
   for _ in range(3)
     0tabnew

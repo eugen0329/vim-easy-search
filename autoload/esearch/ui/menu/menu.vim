@@ -8,6 +8,7 @@ let s:SearchPrompt     = esearch#ui#prompt#search#import()
 let s:ContextEntry     = esearch#ui#menu#context_entry#import()
 let s:BeforeEntry      = esearch#ui#menu#before_entry#import()
 let s:AfterEntry       = esearch#ui#menu#after_entry#import()
+let s:GlobEntry        = esearch#ui#menu#glob_entry#import()
 let s:FiletypeEntry    = esearch#ui#menu#filetype_entry#import()
 
 let s:Menu = esearch#ui#component()
@@ -18,12 +19,13 @@ let s:regex_keys         = ['r', "\<c-r>"]
 let s:textobj_keys       = ['t', "\<c-t>"]
 let s:path_keys          = ['p', "\<c-p>"]
 let s:filetype_keys      = ['f', "\<c-f>"]
+let s:glob_keys          = ['g', "\<c-g>"]
 let s:after_keys         = ['a', 'A']
 let s:before_keys        = ['b', 'B']
 let s:context_keys       = ['c', 'C']
 let s:unsigned_int_keys = ["\<c-a>", "\<c-x>", "\<enter>", "\<left>", "\<right>", "\<c-h>"]
 
-let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys + s:filetype_keys
+let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys + s:filetype_keys + s:glob_keys
       \ + s:after_keys + s:before_keys + s:context_keys + ["\<enter>", "\<del>", "\<bs>", '+', '-'] + s:unsigned_int_keys
       \ + map(range(0, 9), 'string(v:val)')
 
@@ -38,6 +40,7 @@ fu! s:Menu.new(props) abort dict
   if !empty(adapter.textobj)   | let new.items += [s:TextobjEntry.new({'i':  i.next(), 'keys': s:textobj_keys})]  | endif
   if !empty(adapter.filetypes) | let new.items += [s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys})] | endif
   let new.items += [s:PathEntry.new({'i': i.next(), 'keys': s:path_keys})]
+  if !empty(adapter.globs)    | let new.items += [s:GlobEntry.new({'i':  i.next(), 'keys': s:glob_keys})] | endif
   if !empty(adapter.before)   | let new.items += [s:BeforeEntry.new({'i':  i.next()})] | endif
   if !empty(adapter.after)    | let new.items += [s:AfterEntry.new({'i':   i.next()})] | endif
   if !empty(adapter.context)  | let new.items += [s:ContextEntry.new({'i': i.next()})] | endif

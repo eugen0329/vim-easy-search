@@ -62,13 +62,13 @@ describe 'esearch#cmdline menu', :commandline do
             include_examples 'it sets options using hotkey', [C_J] * 2 + [CR], 'textobj' => 'word'
 
             context 'when wrapping around the end' do
-              include_examples 'it sets options using hotkey', [C_J] * 8 + [CR], 'case'    => 'sensitive'
-              include_examples 'it sets options using hotkey', ['k'] * 8 + [CR], 'case'    => 'sensitive'
-              include_examples 'it sets options using hotkey', ['k'] * 7 + [CR], 'regex'   => 'pcre'
-              include_examples 'it sets options using hotkey', ['k'] * 6 + [CR], 'textobj' => 'word'
-              include_examples 'it sets options using hotkey', [C_K] * 8 + [CR], 'case'    => 'sensitive'
-              include_examples 'it sets options using hotkey', [C_K] * 7 + [CR], 'regex'   => 'pcre'
-              include_examples 'it sets options using hotkey', [C_K] * 6 + [CR], 'textobj' => 'word'
+              include_examples 'it sets options using hotkey', [C_J] * 9 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', ['k'] * 9 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', ['k'] * 8 + [CR], 'regex'   => 'pcre'
+              include_examples 'it sets options using hotkey', ['k'] * 7 + [CR], 'textobj' => 'word'
+              include_examples 'it sets options using hotkey', [C_K] * 9 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', [C_K] * 8 + [CR], 'regex'   => 'pcre'
+              include_examples 'it sets options using hotkey', [C_K] * 7 + [CR], 'textobj' => 'word'
             end
           end
         end

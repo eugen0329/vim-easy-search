@@ -24,7 +24,7 @@ endfu
 fu! s:PopupBase.init_autoclose_events() abort dict
   let autocommands = join(self.close_on, ',')
 
-  aug esearch_preview_autoclose
+  aug __esearch_preview_autoclose__
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
     exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'

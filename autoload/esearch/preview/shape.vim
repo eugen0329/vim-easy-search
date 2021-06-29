@@ -6,9 +6,9 @@ fu! esearch#preview#shape#import() abort
 endfu
 
 if has('nvim')
-  let [s:topright, s:topleft, s:botright] = ['NE', 'NW', 'SW']
+  let [s:topright, s:topleft, s:botleft] = ['NE', 'NW', 'SW']
 else
-  let [s:topright, s:topleft, s:botright] = ['topright', 'topleft', 'botright']
+  let [s:topright, s:topleft, s:botleft] = ['topright', 'topleft', 'botleft']
 endif
 
 let s:Shape = {}
@@ -123,7 +123,7 @@ endfu
 fu! s:Shape.align_to_bottom() abort dict
   let self.row    = self.bottom - !has('nvim')
   let self.col    = self.screenpos[1]
-  let self.anchor = s:botright
+  let self.anchor = s:botleft
 endfu
 
 fu! s:Shape.align_to_cursor() abort dict

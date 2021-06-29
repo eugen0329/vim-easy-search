@@ -10,6 +10,7 @@ fu! s:PathPrompt.render() abort dict
     return [[self.props.normal_hl, esearch#shell#join(self.props.paths)]]
   endif
 
+  let l:Escape = self.props.escape ? function('esearch#shell#escape') : {path -> path.str}
   let cwd = self.props.cwd
   let paths = self.props.paths
   let result = []
@@ -17,14 +18,12 @@ fu! s:PathPrompt.render() abort dict
   let end = len(paths) - 1
   for i in range(0, end)
     let path = paths[i]
-    if path.raw
-      let result += [['Special', path.str]]
-    elseif isdirectory(esearch#util#abspath(cwd, path.str))
-      let result += [['Directory', dir_icon . esearch#shell#escape(path)]]
-    elseif empty(path.metachars)
-      let result += [[self.props.normal_hl, esearch#shell#escape(path)]]
-    else
+    if path.meta
       let result += self.highlight_metachars(path)
+    elseif isdirectory(esearch#util#abspath(cwd, path.str))
+      let result += [['Directory', dir_icon . l:Escape(path)]]
+    else
+      let result += [[self.props.normal_hl, l:Escape(path)]]
     endif
 
     if i != end && !empty(self.props.separator)
@@ -36,20 +35,20 @@ fu! s:PathPrompt.render() abort dict
 endfu
 
 fu! s:PathPrompt.highlight_metachars(path) abort dict
-  let parts = esearch#shell#split_by_metachars(a:path)
-  let result = []
+  let chunks = []
 
-  for regular_index in range(0, len(parts)-3, 2)
-    let i = regular_index + 1
-    let result += [[self.props.normal_hl, parts[regular_index]]]
-    let result += [['Identifier', parts[i]]]
+  for [meta, text] in a:path.tokens
+    if meta
+      call add(chunks, [text[0] ==# '`' ? 'Special' : 'Identifier', text])
+    else
+      call add(chunks, ['None', fnameescape(text)])
+    endif
   endfor
 
-  let result += [[self.props.normal_hl, parts[-1]]]
-  return result
+  return chunks
 endfu
 
-let s:PathPrompt.default_props = {'normal_hl': 'NONE', 'separator': ' '}
+let s:PathPrompt.default_props = {'normal_hl': 'NONE', 'separator': ' ', 'escape': 1}
 
 let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths'])
 

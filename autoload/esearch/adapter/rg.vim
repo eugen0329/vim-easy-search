@@ -18,6 +18,9 @@ else
 endif
 let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-filename'
 " https://docs.rs/regex/1.3.6/regex/#syntax
+
+let s:glob = {'icon': '--glob',  'opt': '--glob '}
+let s:iglob = {'icon': '--iglob', 'opt': '--iglob '}
 call extend(s:Rg, {
       \ 'bool2regex': ['literal', 'default'],
       \ 'regex': {
@@ -39,13 +42,17 @@ call extend(s:Rg, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ }
+      \ },
+      \ 'multi_glob': 1,
+      \ 'glob_options': '--files --sort path',
+      \ 'globs': [s:glob, s:iglob],
+      \ 'str2glob': {'-g': s:glob, '--glob': s:glob, '--iglob': s:iglob},
       \})
 
 " rg --type-list | cut -d: -f1 | tr '\n' ' '
 let s:Rg.filetypes = split('agda aidl amake asciidoc asm asp ats avro awk bazel bitbake brotli buildstream bzip2 c cabal cbor ceylon clojure cmake coffeescript config coq cpp creole crystal cs csharp cshtml css csv cython d dart dhall diff docker ebuild edn elisp elixir elm erb erlang fidl fish fortran fsharp gap gn go gradle groovy gzip h haml haskell hbs hs html idris java jinja jl js json jsonl julia jupyter k kotlin less license lisp lock log lua lz4 lzma m4 make mako man markdown matlab md mk ml msbuild nim nix objc objcpp ocaml org pascal pdf perl php pod postscript protobuf ps puppet purs py qmake qml r rdoc readme robot rst ruby rust sass scala sh slim smarty sml soy spark spec sql stylus sv svg swift swig systemd taskpaper tcl tex textile tf thrift toml ts twig txt typoscript vala vb verilog vhdl vim vimscript webidl wiki xml xz yacc yaml zig zsh zstd')
 
-fu! s:Rg.command(esearch) abort dict
+fu! s:Rg._command(esearch, glob_or_pattern) abort dict
   let regex = self.regex[a:esearch.regex].option
   let case = self.textobj[a:esearch.textobj].option
   let textobj = self.case[a:esearch.case].option
@@ -63,17 +70,23 @@ fu! s:Rg.command(esearch) abort dict
 
   return join([
         \ self.bin,
-        \ regex,
-        \ case,
-        \ textobj,
-        \ self.mandatory_options,
-        \ self.options,
+        \ regex, case, textobj,
+        \ self.mandatory_options,  self.options,
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
-        \ a:esearch.pattern.arg,
+        \ a:esearch.globs.arg(),
+        \ a:glob_or_pattern,
         \ '--',
         \ paths,
         \], ' ')
+endfu
+
+fu! s:Rg.command(esearch) abort dict
+  return self._command(a:esearch, a:esearch.pattern.arg)
+endfu
+
+fu! s:Rg.glob(esearch) abort dict
+  return self._command(a:esearch, self.glob_options)
 endfu
 
 fu! s:Rg.filetypes2args(filetypes) abort dict

@@ -18,17 +18,17 @@ fu! esearch#out#qflist#init(es) abort
 endfu
 
 fu! esearch#out#qflist#setup_autocmds(es) abort
-  aug ESearchQFListAutocmds
+  aug __esearch_out_qflist__
     au! * <buffer>
     let a:es.request.cb.update = function('esearch#out#qflist#update')
     let a:es.request.cb.finish = function('esearch#out#qflist#schedule_finish')
 
     " Keep only User cmds(reponsible for results updating) and qf initialization
-    au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "
+    au BufUnload <buffer> exe "au! __esearch_out_qflist__ * <abuf> "
     exe 'au BufUnload <buffer> call esearch#backend#'.a:es.backend."#abort(str2nr(expand('<abuf>')))"
 
     " We need to handle quickfix bufhidden=wipe behavior
-    if !exists('#ESearchQFListAutocmds#FileType')
+    if !exists('#__esearch_out_qflist__#FileType')
       au FileType qf
             \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#buf#qftype(bufnr('%')) ==# 'qf' |
             \   call esearch#out#qflist#setup_autocmds(g:esearch_qf) |
@@ -90,7 +90,7 @@ fu! esearch#out#qflist#finish() abort
   let es = g:esearch_qf
 
   if es.request.async
-    au! ESearchQFListAutocmds * <buffer>
+    au! __esearch_out_qflist__ * <buffer>
   endif
 
   " Update using all remaining request.data
